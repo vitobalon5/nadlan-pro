@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 98%;
+    --foreground: 224 30% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 30% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 30% 10%;
+
+    --primary: 247 53% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-50: 245 100% 97%;
+    --primary-100: 245 90% 92%;
+    --primary-200: 245 80% 86%;
+    --primary-400: 247 65% 67%;
+    --primary-600: 247 53% 50%;
+    --primary-800: 248 44% 37%;
+    --primary-900: 249 47% 25%;
+
+    --secondary: 214 32% 96%;
+    --secondary-foreground: 224 30% 15%;
+
+    --success: 160 69% 37%;
+    --success-foreground: 160 69% 10%;
+    --success-bg: 160 50% 94%;
+    --warning: 37 85% 55%;
+    --warning-foreground: 37 85% 20%;
+    --warning-bg: 42 100% 92%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-bg: 0 90% 96%;
+    --info: 212 74% 54%;
+    --info-foreground: 212 74% 20%;
+    --info-bg: 210 85% 95%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 224 30% 15%;
+    --border: 220 13% 91%;
+    --border-strong: 220 13% 82%;
+    --input: 220 13% 91%;
+    --ring: 247 53% 50%;
+
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    /* Premium dark theme - inspired by Linear, Vercel, Raycast
+       Key principles:
+       - Near-black (not pure black) background to reduce eye strain
+       - Layered surfaces with very subtle contrast between levels
+       - High-contrast primary for interactive elements
+       - Warmer grays to feel less "cold" than pure blue-grays */
+    --background: 240 10% 4%;              /* #0a0a0c - near black with warm tint */
+    --foreground: 0 0% 98%;                /* off-white */
+    --card: 240 8% 7%;                     /* #121214 - subtle elevation */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 9%;                 /* #16161a - popover sits above cards */
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary: vibrant but not harsh - indigo-violet */
+    --primary: 252 95% 72%;                /* #8b7dff-ish */
+    --primary-foreground: 240 10% 4%;
+    --primary-50: 248 30% 12%;
+    --primary-100: 249 40% 18%;
+    --primary-200: 250 50% 28%;
+    --primary-400: 251 70% 55%;
+    --primary-600: 252 95% 72%;
+    --primary-800: 250 95% 85%;
+    --primary-900: 248 100% 92%;
+
+    --secondary: 240 8% 12%;
+    --secondary-foreground: 0 0% 92%;
+
+    /* Semantic colors - brighter in dark for visibility */
+    --success: 158 64% 52%;
+    --success-foreground: 158 64% 8%;
+    --success-bg: 158 45% 12%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 38 92% 10%;
+    --warning-bg: 32 50% 14%;
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --destructive-bg: 0 55% 14%;
+    --info: 210 90% 62%;
+    --info-foreground: 210 90% 10%;
+    --info-bg: 212 45% 14%;
+
+    /* Muted + borders - keep these subtle for premium feel */
+    --muted: 240 6% 12%;                   /* barely visible surface */
+    --muted-foreground: 240 5% 65%;        /* secondary text */
+    --accent: 240 6% 14%;                  /* hover states */
+    --accent-foreground: 0 0% 98%;
+    --border: 240 6% 15%;                  /* subtle - almost invisible */
+    --border-strong: 240 6% 22%;           /* visible divider */
+    --input: 240 6% 15%;
+    --ring: 252 95% 72%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  ::selection {
+    background-color: hsl(var(--primary) / 0.2);
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: hsl(var(--border-strong)); border-radius: 3px; }
+
+  .shimmer {
+    background: linear-gradient(90deg, hsl(var(--muted)) 0%, hsl(var(--muted) / 0.5) 50%, hsl(var(--muted)) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Rich text editor typography - matches AI-generated HTML structure */
+  .prose-editor {
+    color: hsl(var(--foreground));
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+  .prose-editor:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+  .prose-editor h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .prose-editor h2:first-child {
+    margin-top: 0;
+  }
+  .prose-editor h3 {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+    margin-top: 1.2em;
+    margin-bottom: 0.3em;
+  }
+  .prose-editor p {
+    margin-bottom: 0.8em;
+    color: hsl(var(--foreground));
+  }
+  .prose-editor strong {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+  .prose-editor ul, .prose-editor ol {
+    margin: 0.5em 0 0.8em 0;
+    padding-right: 1.5em;
+  }
+  .prose-editor li {
+    margin-bottom: 0.3em;
+  }
+  .prose-editor a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .prose-editor a:hover {
+    color: hsl(var(--primary-800));
+  }
+  /* Streaming cursor effect */
+  .prose-editor.is-streaming::after {
+    content: '▊';
+    display: inline-block;
+    color: hsl(var(--primary));
+    animation: blink 1s infinite;
+    margin-inline-start: 2px;
+  }
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+}

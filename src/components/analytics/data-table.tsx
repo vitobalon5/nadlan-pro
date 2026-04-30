@@ -5,7 +5,7 @@ import { ArrowUp, ArrowDown, ExternalLink, ChevronLeft, ChevronRight } from 'luc
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn, formatILS, formatNumber } from '@/lib/utils';
-import type { AnalyticsRow, AnalyticsFilters } from '@/app/actions/analytics';
+import type { AnalyticsRow, AnalyticsFilters } from '@/app/actions/analytics-types';
 
 interface Column {
   key: keyof AnalyticsRow | 'price_per_sqm' | 'actions';

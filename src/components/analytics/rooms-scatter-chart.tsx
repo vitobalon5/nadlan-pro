@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatILS } from '@/lib/utils';
-import type { RoomsScatterPoint } from '@/app/actions/analytics-charts';
+import type { RoomsScatterPoint } from '@/app/actions/analytics-charts-types';
 
 interface Props {
   data: RoomsScatterPoint[];

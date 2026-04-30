@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import type { UserRow } from './users-types';
 
 type ActionResult<T> =
   | { ok: true; data: T }
@@ -29,16 +30,6 @@ async function requireAdmin() {
 // ============================================================================
 // LIST USERS
 // ============================================================================
-
-export interface UserRow {
-  id: string;
-  email: string;
-  full_name: string | null;
-  role: 'admin' | 'editor' | 'viewer';
-  is_active: boolean;
-  phone: string | null;
-  created_at: string;
-}
 
 export async function listUsersAction(): Promise<ActionResult<UserRow[]>> {
   const auth = await requireAdmin();

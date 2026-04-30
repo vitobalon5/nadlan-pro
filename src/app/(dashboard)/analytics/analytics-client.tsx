@@ -8,11 +8,11 @@ import { AnalyticsTable } from '@/components/analytics/data-table';
 import { AnalyticsCharts } from '@/components/analytics/charts-section';
 import { ExportExcelButton } from '@/components/analytics/export-button';
 import { FadeIn } from '@/components/ui/motion';
-import {
-  fetchAnalyticsAction,
-  type AnalyticsFilters,
-  type AnalyticsResult,
-} from '@/app/actions/analytics';
+import { fetchAnalyticsAction } from '@/app/actions/analytics';
+import type {
+  AnalyticsFilters,
+  AnalyticsResult,
+} from '@/app/actions/analytics-types';
 
 interface Props {
   userName: string;

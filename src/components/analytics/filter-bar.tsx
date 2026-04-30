@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import type { AnalyticsFilters } from '@/app/actions/analytics';
+import type { AnalyticsFilters } from '@/app/actions/analytics-types';
 
 interface Props {
   filters: AnalyticsFilters;

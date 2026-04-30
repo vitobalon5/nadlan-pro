@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import type { CommandProjectResult } from './command-search-types';
 
 /**
  * Command bar search — returns projects matching the query for Cmd+K nav.
@@ -13,16 +14,6 @@ import { createClient } from '@/lib/supabase/server';
  */
 
 type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
-
-export interface CommandProjectResult {
-  id: string;
-  name: string;
-  slug: string;
-  city: string;
-  neighborhood: string | null;
-  status: string;
-  cover_image_url: string | null;
-}
 
 export async function searchProjectsForCommandAction(
   query: string

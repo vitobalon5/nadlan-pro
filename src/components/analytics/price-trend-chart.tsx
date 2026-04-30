@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatILS } from '@/lib/utils';
-import type { PriceTrendPoint } from '@/app/actions/analytics-charts';
+import type { PriceTrendPoint } from '@/app/actions/analytics-charts-types';
 
 interface Props {
   data: PriceTrendPoint[];

@@ -38,8 +38,8 @@ import {
   updateUserAction,
   deleteUserAction,
   sendPasswordResetAction,
-  type UserRow,
 } from '@/app/actions/users';
+import type { UserRow } from '@/app/actions/users-types';
 
 interface Props {
   initialUsers: UserRow[];

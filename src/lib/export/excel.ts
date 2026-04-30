@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import type { AnalyticsRow, AnalyticsStats, AnalyticsFilters } from '@/app/actions/analytics';
+import type { AnalyticsRow, AnalyticsStats, AnalyticsFilters } from '@/app/actions/analytics-types';
 
 /**
  * Excel export using xlsx (SheetJS).

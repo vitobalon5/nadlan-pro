@@ -1,7 +1,13 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { z } from 'zod';
+import {
+  AnalyticsFiltersSchema,
+  MAX_EXPORT_ROWS,
+  type AnalyticsResult,
+  type AnalyticsRow,
+  type AnalyticsStats,
+} from './analytics-types';
 
 /**
  * Analytics data Server Action.
@@ -14,70 +20,10 @@ import { z } from 'zod';
  *
  * This same action powers both the table and the Excel export.
  * For export, we raise the limit to MAX_EXPORT_ROWS.
+ *
+ * NOTE: types and schemas live in ./analytics-types.ts because a
+ * 'use server' file can only export async functions.
  */
-
-export const AnalyticsFiltersSchema = z.object({
-  city: z.string().optional(),
-  neighborhood: z.string().optional(),
-  source: z.enum(['yad2', 'madlan', 'tax_authority', 'all']).default('all'),
-  listingType: z.enum(['sale', 'rent', 'transaction', 'all']).default('all'),
-  minPrice: z.number().positive().optional(),
-  maxPrice: z.number().positive().optional(),
-  minRooms: z.number().min(0).max(30).optional(),
-  maxRooms: z.number().min(0).max(30).optional(),
-  // Date range applies to transaction_date for transactions, listed_at for sale/rent
-  fromDate: z.string().optional(), // ISO date yyyy-mm-dd
-  toDate: z.string().optional(),
-  // Pagination
-  page: z.number().int().min(1).default(1),
-  pageSize: z.number().int().min(10).max(500).default(50),
-  // Sorting
-  sortBy: z
-    .enum(['transaction_date', 'price', 'price_per_sqm', 'area_sqm', 'rooms', 'city'])
-    .default('transaction_date'),
-  sortDir: z.enum(['asc', 'desc']).default('desc'),
-});
-
-export type AnalyticsFilters = z.infer<typeof AnalyticsFiltersSchema>;
-
-export interface AnalyticsRow {
-  id: string;
-  source: string;
-  listing_type: string;
-  city: string;
-  neighborhood: string | null;
-  street: string | null;
-  property_type: string | null;
-  rooms: number | null;
-  area_sqm: number | null;
-  floor: number | null;
-  year_built: number | null;
-  price: number | null;
-  price_per_sqm: number | null;
-  transaction_date: string | null;
-  listed_at: string | null;
-  source_url: string | null;
-}
-
-export interface AnalyticsStats {
-  totalCount: number;
-  avgPrice: number | null;
-  medianPrice: number | null;
-  avgPricePerSqm: number | null;
-  avgAreaSqm: number | null;
-  avgRooms: number | null;
-}
-
-export interface AnalyticsResult {
-  rows: AnalyticsRow[];
-  stats: AnalyticsStats;
-  pagination: {
-    page: number;
-    pageSize: number;
-    totalPages: number;
-    totalRows: number;
-  };
-}
 
 type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -125,7 +71,6 @@ export async function fetchAnalyticsAction(
   };
 
   try {
-    // Main paginated query
     const offset = (filters.page - 1) * filters.pageSize;
 
     const { data: rows, count, error } = await buildBaseQuery()
@@ -134,14 +79,9 @@ export async function fetchAnalyticsAction(
 
     if (error) return { ok: false, error: error.message };
 
-    // Stats - separate query that aggregates over the full filtered set
-    // We compute this client-side-ish from a sample or use SQL function
-    // For now we'll fetch up to 10000 rows just for stats computation.
-    // For production, prefer a Postgres function that computes stats server-side.
-    const { data: statsRows } = await buildBaseQuery()
-      .limit(10_000);
+    const { data: statsRows } = await buildBaseQuery().limit(10_000);
 
-    const stats = computeStats(statsRows ?? [], count ?? 0);
+    const stats = computeStats((statsRows ?? []) as AnalyticsRow[], count ?? 0);
 
     return {
       ok: true,
@@ -156,17 +96,15 @@ export async function fetchAnalyticsAction(
         },
       },
     };
-  } catch (error: any) {
-    return { ok: false, error: error.message ?? 'שגיאה בטעינת נתונים' };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'שגיאה בטעינת נתונים';
+    return { ok: false, error: message };
   }
 }
 
 /**
  * Export query - fetches up to MAX_EXPORT_ROWS for Excel generation.
- * Same filters as table, but without pagination.
  */
-export const MAX_EXPORT_ROWS = 5000;
-
 export async function fetchAnalyticsForExportAction(
   filtersInput: unknown
 ): Promise<ActionResult<AnalyticsRow[]>> {

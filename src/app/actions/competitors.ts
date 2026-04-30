@@ -2,36 +2,12 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { searchCompetitors, type CompetitorProject } from '@/lib/services/competitors';
+import type {
+  CompetitorComparisonRow,
+  CompetitorComparisonResult,
+} from './competitors-types';
 
 type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
-
-export interface CompetitorComparisonRow {
-  /** true for the user's own project (first row, highlighted) */
-  isSelf: boolean;
-  name: string;
-  marketer: string | null;
-  location: string;
-  startingPrice: number | null;
-  areaSqm: number | null;
-  rooms: number | null;
-  pricePerSqm: number | null;
-  /** Percentage delta vs the user's project. null for the self-row. */
-  pricePerSqmDelta: number | null;
-  source: string;
-  url: string | null;
-  confidence: number;
-}
-
-export interface CompetitorComparisonResult {
-  rows: CompetitorComparisonRow[];
-  selfPricePerSqm: number | null;
-  searchQuery: string;
-  provider: string;
-  resultsFetched: number;
-  warnings: string[];
-  /** When this comparison was built */
-  generatedAt: string;
-}
 
 export async function fetchCompetitorsAction(
   projectSlug: string

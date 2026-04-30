@@ -1,7 +1,13 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { AnalyticsFiltersSchema, type AnalyticsFilters } from './analytics';
+import { AnalyticsFiltersSchema } from './analytics-types';
+import type {
+  ChartsData,
+  PriceTrendPoint,
+  PriceDistributionBucket,
+  RoomsScatterPoint,
+} from './analytics-charts-types';
 
 /**
  * Chart data server action.
@@ -13,42 +19,10 @@ import { AnalyticsFiltersSchema, type AnalyticsFilters } from './analytics';
  * Performance: we aggregate client-side on up to 10K rows. If the filter
  * returns more, we sample. For production scale, move aggregation to SQL
  * (Postgres GROUP BY).
+ *
+ * NOTE: types live in ./analytics-charts-types.ts because a 'use server' file
+ * can only export async functions.
  */
-
-export interface PriceTrendPoint {
-  month: string; // 'yyyy-mm' format
-  monthLabel: string; // 'ינו 2026' for display
-  avgPrice: number;
-  medianPrice: number;
-  count: number;
-}
-
-export interface PriceDistributionBucket {
-  /** Bucket lower bound in ILS */
-  from: number;
-  /** Bucket upper bound in ILS */
-  to: number;
-  /** Midpoint for axis labels */
-  label: string;
-  count: number;
-}
-
-export interface RoomsScatterPoint {
-  rooms: number;
-  pricePerSqm: number;
-  /** jitter for visual separation when many points overlap */
-  id: string;
-}
-
-export interface ChartsData {
-  priceTrend: PriceTrendPoint[];
-  priceDistribution: PriceDistributionBucket[];
-  roomsScatter: RoomsScatterPoint[];
-  /** Meta for UI - show "based on N records" */
-  sampleSize: number;
-  /** True when sample < full set, so UI can show "approximate" badge */
-  isSampled: boolean;
-}
 
 type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -93,7 +67,7 @@ export async function fetchChartsAction(
   const { data, error } = await q.limit(MAX_SAMPLE);
   if (error) return { ok: false, error: error.message };
 
-  const rows = data ?? [];
+  const rows = (data ?? []) as Row[];
 
   return {
     ok: true,

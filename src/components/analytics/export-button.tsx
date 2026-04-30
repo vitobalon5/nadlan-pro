@@ -3,12 +3,12 @@
 import * as React from 'react';
 import { Download, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { fetchAnalyticsForExportAction } from '@/app/actions/analytics';
 import {
-  fetchAnalyticsForExportAction,
   MAX_EXPORT_ROWS,
   type AnalyticsFilters,
   type AnalyticsStats,
-} from '@/app/actions/analytics';
+} from '@/app/actions/analytics-types';
 import { buildWorkbook, downloadWorkbook, buildExportFilename } from '@/lib/export/excel';
 
 interface Props {

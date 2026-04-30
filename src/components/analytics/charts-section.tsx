@@ -5,8 +5,9 @@ import { BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
 import { PriceTrendChart } from './price-trend-chart';
 import { PriceDistributionChart } from './price-distribution-chart';
 import { RoomsScatterChart } from './rooms-scatter-chart';
-import { fetchChartsAction, type ChartsData } from '@/app/actions/analytics-charts';
-import type { AnalyticsFilters } from '@/app/actions/analytics';
+import { fetchChartsAction } from '@/app/actions/analytics-charts';
+import type { ChartsData } from '@/app/actions/analytics-charts-types';
+import type { AnalyticsFilters } from '@/app/actions/analytics-types';
 import { cn } from '@/lib/utils';
 
 interface Props {

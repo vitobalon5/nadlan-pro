@@ -192,7 +192,6 @@ export function DashboardClient({ userName, canCreate, kpis, recentProjects }: P
       {recentProjects.length === 0 && canCreate && (
         <FadeIn delay={0.1}>
         <Card>
-        <Card>
           <CardContent className="py-16 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[hsl(var(--primary-50))]">
               <Building2 className="h-6 w-6 text-[hsl(var(--primary-600))]" />

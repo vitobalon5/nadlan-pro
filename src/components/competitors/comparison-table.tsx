@@ -19,11 +19,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn, formatILS, formatNumber } from '@/lib/utils';
-import {
-  fetchCompetitorsAction,
-  type CompetitorComparisonResult,
-  type CompetitorComparisonRow,
-} from '@/app/actions/competitors';
+import { fetchCompetitorsAction } from '@/app/actions/competitors';
+import type {
+  CompetitorComparisonResult,
+  CompetitorComparisonRow,
+} from '@/app/actions/competitors-types';
 
 interface Props {
   projectSlug: string;

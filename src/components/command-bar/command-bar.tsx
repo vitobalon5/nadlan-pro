@@ -22,10 +22,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  searchProjectsForCommandAction,
-  type CommandProjectResult,
-} from '@/app/actions/command-search';
+import { searchProjectsForCommandAction } from '@/app/actions/command-search';
+import type { CommandProjectResult } from '@/app/actions/command-search-types';
 import { useTheme } from '@/components/theme-provider';
 
 interface Props {

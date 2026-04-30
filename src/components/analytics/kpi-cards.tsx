@@ -3,7 +3,7 @@
 import { TrendingUp, Home, Maximize2, Building } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatILS, formatNumber } from '@/lib/utils';
-import type { AnalyticsStats } from '@/app/actions/analytics';
+import type { AnalyticsStats } from '@/app/actions/analytics-types';
 
 interface Props {
   stats: AnalyticsStats;

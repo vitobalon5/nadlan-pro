@@ -109,7 +109,7 @@ export async function GET(request: Request) {
     .order('created_at', { ascending: false })
     .limit(limit);
 
-  if (source) query = query.eq('source', source);
+  if (source) query = query.eq('source', source as 'yad2' | 'madlan' | 'tax_authority' | 'manual' | 'other');
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

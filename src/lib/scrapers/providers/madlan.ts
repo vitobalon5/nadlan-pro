@@ -89,9 +89,10 @@ export class MadlanApifyProvider implements ScraperProvider {
       timeoutSec: 180,
     });
 
+    const madlanListingType: 'sale' | 'rent' = query.listingType === 'rent' ? 'rent' : 'sale';
     const { valid, invalid, reasons } = this.normalizeAndValidate(
       rawItems,
-      query.listingType ?? 'sale'
+      madlanListingType
     );
 
     return {

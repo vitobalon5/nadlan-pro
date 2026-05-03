@@ -438,7 +438,7 @@ function buildAiSummarySheet(htmlText: string): XLSX.WorkSheet {
 
   const sheet = XLSX.utils.aoa_to_sheet(rows);
   sheet['!cols'] = [{ wch: 100 }];
-  sheet['!rows'] = [undefined, undefined, undefined, { hpt: 400 }];
+  sheet['!rows'] = [{}, {}, {}, { hpt: 400 }];
   sheet['!views'] = [{ RTL: true }];
 
   // Wrap text in the content cell

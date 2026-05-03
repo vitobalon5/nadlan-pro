@@ -94,10 +94,11 @@ export class Yad2BrowserProvider implements ScraperProvider {
 
     ctx.log('info', `Yad2: extracted ${rawItems.length} items`);
 
+    const yad2ListingType: 'sale' | 'rent' = query.listingType === 'rent' ? 'rent' : 'sale';
     const { valid, invalid, reasons } = this.normalizeAndValidate(
       rawItems,
       query.city,
-      query.listingType ?? 'sale'
+      yad2ListingType
     );
 
     return {

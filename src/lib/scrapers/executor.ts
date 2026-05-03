@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { getProvider } from './registry';
 import type { ScrapeQuery } from './types';
 import type { DataSource } from './types';
+import type { Json } from '@/types/database.types';
 
 /**
  * The only function that actually executes a scrape end-to-end:
@@ -106,7 +107,7 @@ export async function executeScrape(input: ExecuteScrapeInput): Promise<ExecuteS
         const { error: upsertError } = await supabase.from('market_listings').upsert(
           batch.map((l) => ({
             ...l,
-            raw_data: l.raw_data ?? null,
+            raw_data: (l.raw_data ?? null) as Json | null,
             scraped_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })),

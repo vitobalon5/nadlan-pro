@@ -9,10 +9,24 @@ type ActionResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string; code?: 'UNAUTHORIZED' | 'FORBIDDEN' | 'VALIDATION' | 'CONFLICT' | 'INTERNAL' };
 
-async function requireAdmin() {
+type AuthError = {
+  error: string;
+  code: 'UNAUTHORIZED' | 'FORBIDDEN';
+};
+type AuthSuccess = {
+  user: NonNullable<Awaited<ReturnType<Awaited<ReturnType<typeof createClient>>['auth']['getUser']>>['data']['user']>;
+  profile: { role: 'admin' | 'editor' | 'viewer'; is_active: boolean };
+  supabase: Awaited<ReturnType<typeof createClient>>;
+};
+
+function isAuthError(r: AuthError | AuthSuccess): r is AuthError {
+  return 'error' in r;
+}
+
+async function requireAdmin(): Promise<AuthError | AuthSuccess> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'אנא התחבר', code: 'UNAUTHORIZED' as const };
+  if (!user) return { error: 'אנא התחבר', code: 'UNAUTHORIZED' };
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -20,9 +34,9 @@ async function requireAdmin() {
     .eq('id', user.id)
     .single();
 
-  if (!profile?.is_active) return { error: 'החשבון הושבת', code: 'FORBIDDEN' as const };
+  if (!profile?.is_active) return { error: 'החשבון הושבת', code: 'FORBIDDEN' };
   if (profile.role !== 'admin') {
-    return { error: 'פעולה זו זמינה לאדמינים בלבד', code: 'FORBIDDEN' as const };
+    return { error: 'פעולה זו זמינה לאדמינים בלבד', code: 'FORBIDDEN' };
   }
   return { user, profile, supabase };
 }
@@ -33,7 +47,7 @@ async function requireAdmin() {
 
 export async function listUsersAction(): Promise<ActionResult<UserRow[]>> {
   const auth = await requireAdmin();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   const { data, error } = await auth.supabase
     .from('profiles')
@@ -59,7 +73,7 @@ export async function inviteUserAction(
   input: z.infer<typeof inviteSchema>
 ): Promise<ActionResult<{ userId: string; emailSent: boolean }>> {
   const auth = await requireAdmin();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   const parsed = inviteSchema.safeParse(input);
   if (!parsed.success) {
@@ -130,7 +144,7 @@ export async function updateUserAction(
   input: z.infer<typeof updateUserSchema>
 ): Promise<ActionResult<{ success: boolean }>> {
   const auth = await requireAdmin();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   const parsed = updateUserSchema.safeParse(input);
   if (!parsed.success) {
@@ -165,7 +179,7 @@ export async function updateUserAction(
 
 export async function deleteUserAction(userId: string): Promise<ActionResult<{ deleted: boolean }>> {
   const auth = await requireAdmin();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   if (!z.string().uuid().safeParse(userId).success) {
     return { ok: false, error: 'Invalid user id', code: 'VALIDATION' };
@@ -192,7 +206,7 @@ export async function sendPasswordResetAction(
   userId: string
 ): Promise<ActionResult<{ sent: boolean }>> {
   const auth = await requireAdmin();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   const admin = createAdminClient();
 

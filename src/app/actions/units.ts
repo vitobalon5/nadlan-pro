@@ -14,10 +14,24 @@ type ActionResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string; code?: 'UNAUTHORIZED' | 'FORBIDDEN' | 'VALIDATION' | 'CONFLICT' | 'INTERNAL' };
 
-async function requireEditor() {
+type AuthError = {
+  error: string;
+  code: 'UNAUTHORIZED' | 'FORBIDDEN';
+};
+type AuthSuccess = {
+  user: NonNullable<Awaited<ReturnType<Awaited<ReturnType<typeof createClient>>['auth']['getUser']>>['data']['user']>;
+  profile: { role: 'admin' | 'editor' | 'viewer'; is_active: boolean };
+  supabase: Awaited<ReturnType<typeof createClient>>;
+};
+
+function isAuthError(r: AuthError | AuthSuccess): r is AuthError {
+  return 'error' in r;
+}
+
+async function requireEditor(): Promise<AuthError | AuthSuccess> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'אנא התחבר', code: 'UNAUTHORIZED' as const };
+  if (!user) return { error: 'אנא התחבר', code: 'UNAUTHORIZED' };
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -25,9 +39,9 @@ async function requireEditor() {
     .eq('id', user.id)
     .single();
 
-  if (!profile?.is_active) return { error: 'החשבון הושבת', code: 'FORBIDDEN' as const };
+  if (!profile?.is_active) return { error: 'החשבון הושבת', code: 'FORBIDDEN' };
   if (profile.role !== 'admin' && profile.role !== 'editor') {
-    return { error: 'אין הרשאה לפעולה זו', code: 'FORBIDDEN' as const };
+    return { error: 'אין הרשאה לפעולה זו', code: 'FORBIDDEN' };
   }
   return { user, profile, supabase };
 }
@@ -40,7 +54,7 @@ export async function createUnitAction(
   input: CreateUnitInput
 ): Promise<ActionResult<{ id: string }>> {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   const parsed = createUnitSchema.safeParse(input);
   if (!parsed.success) {
@@ -80,7 +94,7 @@ export async function updateUnitAction(
   input: UpdateUnitInput
 ): Promise<ActionResult<{ id: string }>> {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   const parsed = updateUnitSchema.safeParse(input);
   if (!parsed.success) {
@@ -117,7 +131,7 @@ export async function updateUnitAction(
 
 export async function deleteUnitAction(unitId: string): Promise<ActionResult<{ deleted: boolean }>> {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   if (!z.string().uuid().safeParse(unitId).success) {
     return { ok: false, error: 'Invalid unit id', code: 'VALIDATION' };
@@ -140,7 +154,7 @@ export async function bulkCreateUnitsAction(
   startNumber: number = 1
 ): Promise<ActionResult<{ inserted: number }>> {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   if (count < 1 || count > 500) {
     return { ok: false, error: 'כמות חייבת להיות בין 1 ל-500', code: 'VALIDATION' };

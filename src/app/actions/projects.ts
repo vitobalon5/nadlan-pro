@@ -19,12 +19,26 @@ type ActionResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string; code?: 'UNAUTHORIZED' | 'FORBIDDEN' | 'VALIDATION' | 'CONFLICT' | 'INTERNAL' };
 
-async function requireEditor() {
+type AuthError = {
+  error: string;
+  code: 'UNAUTHORIZED' | 'FORBIDDEN';
+};
+type AuthSuccess = {
+  user: NonNullable<Awaited<ReturnType<Awaited<ReturnType<typeof createClient>>['auth']['getUser']>>['data']['user']>;
+  profile: { role: 'admin' | 'editor' | 'viewer'; is_active: boolean };
+  supabase: Awaited<ReturnType<typeof createClient>>;
+};
+
+function isAuthError(r: AuthError | AuthSuccess): r is AuthError {
+  return 'error' in r;
+}
+
+async function requireEditor(): Promise<AuthError | AuthSuccess> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: 'אנא התחבר', code: 'UNAUTHORIZED' as const };
+  if (!user) return { error: 'אנא התחבר', code: 'UNAUTHORIZED' };
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -32,10 +46,10 @@ async function requireEditor() {
     .eq('id', user.id)
     .single();
 
-  if (!profile) return { error: 'פרופיל לא נמצא', code: 'UNAUTHORIZED' as const };
-  if (!profile.is_active) return { error: 'החשבון הושבת', code: 'FORBIDDEN' as const };
+  if (!profile) return { error: 'פרופיל לא נמצא', code: 'UNAUTHORIZED' };
+  if (!profile.is_active) return { error: 'החשבון הושבת', code: 'FORBIDDEN' };
   if (profile.role !== 'admin' && profile.role !== 'editor') {
-    return { error: 'אין הרשאה לפעולה זו', code: 'FORBIDDEN' as const };
+    return { error: 'אין הרשאה לפעולה זו', code: 'FORBIDDEN' };
   }
 
   return { user, profile, supabase };
@@ -49,7 +63,7 @@ export async function createProjectAction(
   input: z.infer<typeof fullProjectSchema>
 ): Promise<ActionResult<{ id: string; slug: string }>> {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   const parsed = fullProjectSchema.safeParse(input);
   if (!parsed.success) {
@@ -107,7 +121,7 @@ export async function createMediaRecordAction(
   input: z.infer<typeof createMediaRecordSchema>
 ): Promise<ActionResult<{ id: string }>> {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   const parsed = createMediaRecordSchema.safeParse(input);
   if (!parsed.success) {
@@ -155,7 +169,7 @@ export async function deleteMediaAction(
   mediaId: string
 ): Promise<ActionResult<{ deleted: boolean }>> {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   if (!z.string().uuid().safeParse(mediaId).success) {
     return { ok: false, error: 'Invalid media ID', code: 'VALIDATION' };
@@ -208,7 +222,7 @@ export async function setCoverImageAction(
   mediaId: string
 ): Promise<ActionResult<{ success: boolean }>> {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   // Get the media and its project
   const { data: media } = await auth.supabase

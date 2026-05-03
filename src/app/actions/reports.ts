@@ -6,17 +6,32 @@ import { z } from 'zod';
 import { generateReport, type ReportInputData } from '@/lib/services/ai-reports';
 import { fetchCityData } from '@/lib/services/city-data';
 import { searchCompetitors } from '@/lib/services/competitors';
+import type { Json } from '@/types/database.types';
 
 type ActionResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string; code?: 'UNAUTHORIZED' | 'FORBIDDEN' | 'VALIDATION' | 'INTERNAL' };
 
-async function requireEditor() {
+type AuthError = {
+  error: string;
+  code: 'UNAUTHORIZED' | 'FORBIDDEN';
+};
+type AuthSuccess = {
+  user: NonNullable<Awaited<ReturnType<Awaited<ReturnType<typeof createClient>>['auth']['getUser']>>['data']['user']>;
+  profile: { role: 'admin' | 'editor' | 'viewer'; is_active: boolean };
+  supabase: Awaited<ReturnType<typeof createClient>>;
+};
+
+function isAuthError(r: AuthError | AuthSuccess): r is AuthError {
+  return 'error' in r;
+}
+
+async function requireEditor(): Promise<AuthError | AuthSuccess> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: 'אנא התחבר', code: 'UNAUTHORIZED' as const };
+  if (!user) return { error: 'אנא התחבר', code: 'UNAUTHORIZED' };
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -24,9 +39,9 @@ async function requireEditor() {
     .eq('id', user.id)
     .single();
 
-  if (!profile?.is_active) return { error: 'החשבון הושבת', code: 'FORBIDDEN' as const };
+  if (!profile?.is_active) return { error: 'החשבון הושבת', code: 'FORBIDDEN' };
   if (profile.role !== 'admin' && profile.role !== 'editor') {
-    return { error: 'אין הרשאה ליצור דוחות', code: 'FORBIDDEN' as const };
+    return { error: 'אין הרשאה ליצור דוחות', code: 'FORBIDDEN' };
   }
   return { user, profile, supabase };
 }
@@ -191,7 +206,7 @@ export async function gatherReportInputAction(
   }>
 > {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   const gathered = await gatherReportData(projectSlug);
   if (!gathered) {
@@ -236,7 +251,7 @@ export async function generateReportAction(
   }>
 > {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   // Gather all data
   const gathered = await gatherReportData(projectSlug);
@@ -289,7 +304,7 @@ export async function saveReportAction(
   input: z.infer<typeof saveReportSchema>
 ): Promise<ActionResult<{ id: string }>> {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   const parsed = saveReportSchema.safeParse(input);
   if (!parsed.success) {
@@ -319,7 +334,7 @@ export async function saveReportAction(
       title: parsed.data.title,
       content_html: sanitizedHtml,
       ai_original_text: parsed.data.ai_original_text ?? null,
-      input_snapshot: parsed.data.input_snapshot ?? null,
+      input_snapshot: (parsed.data.input_snapshot ?? null) as Json | null,
       model_name: parsed.data.model_name ?? null,
       prompt_token_count: parsed.data.prompt_tokens ?? null,
       completion_token_count: parsed.data.completion_tokens ?? null,
@@ -378,7 +393,7 @@ export async function deleteReportAction(
   reportId: string
 ): Promise<ActionResult<{ deleted: boolean }>> {
   const auth = await requireEditor();
-  if ('error' in auth) return { ok: false, error: auth.error, code: auth.code };
+  if (isAuthError(auth)) return { ok: false, error: auth.error, code: auth.code };
 
   if (!z.string().uuid().safeParse(reportId).success) {
     return { ok: false, error: 'Invalid report id', code: 'VALIDATION' };

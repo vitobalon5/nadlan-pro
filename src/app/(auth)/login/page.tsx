@@ -16,14 +16,13 @@ export default function LoginPage() {
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState<string | null>(() => {
     const reason = searchParams.get('reason');
-    if (reason === 'deactivated') return 'החשבון שלך הושבת. פנה למנהל המערכת.';
-    if (reason === 'invalid_link') return 'הקישור לא תקף או פג תוקף. נסה לבקש קישור חדש.';
+    if (reason === 'deactivated') return 'Account deactivated. Contact admin.';
+    if (reason === 'invalid_link') return 'Link expired. Request a new one.';
     return null;
   });
   const [loading, setLoading] = React.useState(false);
   const [redirecting, setRedirecting] = React.useState(false);
 
-  // Detect implicit-flow tokens in URL fragment (#access_token=...&type=recovery)
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     const hash = window.location.hash;
@@ -60,7 +59,6 @@ export default function LoginPage() {
       setError(result.error);
       setLoading(false);
     }
-    // If no error, the server action calls redirect() which throws - we never reach here
   };
 
   if (redirecting) {
@@ -68,7 +66,7 @@ export default function LoginPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">מעביר אותך...</p>
+          <p className="text-sm text-muted-foreground">Redirecting...</p>
         </div>
       </div>
     );
@@ -96,4 +94,107 @@ export default function LoginPage() {
 
         <div className="relative">
           <blockquote className="text-xl font-light leading-relaxed text-white/90">
-            "הפלטפורמה הזו חסכה לנו 15 שעות עבודה בשבוע בניה
+            The platform saved us 15 hours of work per week managing projects and gave us market insights we never had before.
+          </blockquote>
+          <div className="mt-6 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 font-medium text-white backdrop-blur">
+              RC
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white">Ronen Cohen</p>
+              <p className="text-xs text-white/60">CEO, Azorim Ltd.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative flex flex-col px-6 py-8 sm:px-12 lg:px-20">
+        <div className="absolute top-6 left-6">
+          <ThemeToggle />
+        </div>
+
+        <div className="flex items-center gap-2 lg:hidden">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+            <Building2 className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <span className="text-sm font-medium">Nadlan Pro</span>
+        </div>
+
+        <div className="my-auto mx-auto w-full max-w-sm">
+          <div className="mb-8 text-center">
+            <h1 className="text-2xl font-semibold tracking-tight">Welcome Back</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Sign in to your account to continue
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="flex items-start gap-2 rounded-lg border border-[hsl(var(--destructive))] bg-[hsl(var(--destructive-bg))] px-3 py-2.5 text-sm">
+                <AlertCircle className="h-4 w-4 shrink-0 text-[hsl(var(--destructive))] mt-0.5" />
+                <span className="text-[hsl(var(--destructive))]">{error}</span>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                disabled={loading}
+                dir="ltr"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-primary hover:underline"
+                  tabIndex={-1}
+                >
+                  Forgot password
+                </Link>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                disabled={loading}
+                dir="ltr"
+              />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign in'
+              )}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            Access for company employees only. Contact admin for permissions.
+          </p>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground">
+          2026 Nadlan Pro. All rights reserved.
+        </p>
+      </div>
+    </div>
+  );
+}

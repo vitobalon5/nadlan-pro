@@ -4,11 +4,15 @@ import { Sidebar } from '@/components/sidebar';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect('/login');
+  // If middleware passed but session expired between requests, fail gracefully
+  if (!user) {
+    redirect('/login');
+  }
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -16,16 +20,27 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('id', user.id)
     .single();
 
-  if (!profile) redirect('/login');
+  // Fallback profile if not found - prevents redirect loop
+  const safeProfile = profile ?? {
+    full_name: user.email?.split('@')[0] ?? 'User',
+    email: user.email ?? '',
+    role: 'viewer' as const,
+  };
 
-  const { count } = await supabase
-    .from('projects')
-    .select('*', { count: 'exact', head: true })
-    .is('deleted_at', null);
+  let projectCount = 0;
+  try {
+    const { count } = await supabase
+      .from('projects')
+      .select('*', { count: 'exact', head: true })
+      .is('deleted_at', null);
+    projectCount = count ?? 0;
+  } catch {
+    projectCount = 0;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar user={profile} projectCount={count ?? 0} />
+      <Sidebar user={safeProfile} projectCount={projectCount} />
       <main className="flex-1 overflow-y-auto bg-background scrollbar-thin">{children}</main>
     </div>
   );

@@ -1,15 +1,25 @@
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { DashboardClient } from './dashboard-client';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Layout already protects this, but belt-and-suspenders
-  if (!user) redirect('/login');
+  // If user disappeared between middleware/layout and here, just render empty state
+  // The layout already protects this route, so this is just a safety net
+  if (!user) {
+    return (
+      <DashboardClient
+        userName="User"
+        canCreate={false}
+        kpis={{ totalProjects: 0, activeProjects: 0 }}
+        recentProjects={[]}
+      />
+    );
+  }
 
   // Fetch profile to check write permissions
   const { data: profile } = await supabase
@@ -18,13 +28,29 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single();
 
-  if (!profile) redirect('/login');
+  // Fallback if profile not found - prevents redirect loop
+  const safeProfile = profile ?? {
+    role: 'viewer' as const,
+    full_name: user.email?.split('@')[0] ?? 'User',
+    email: user.email ?? '',
+  };
 
-  const canCreate = profile.role === 'admin' || profile.role === 'editor';
+  const canCreate = safeProfile.role === 'admin' || safeProfile.role === 'editor';
 
-  // Fetch KPIs for dashboard summary
-  const [{ count: totalProjects }, { count: activeProjects }, { data: recentProjects }] =
-    await Promise.all([
+  // Fetch KPIs for dashboard summary - with try/catch in case of RLS issues
+  let totalProjects = 0;
+  let activeProjects = 0;
+  let recentProjects: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    city: string;
+    status: string;
+    created_at: string;
+  }> = [];
+
+  try {
+    const [totalResult, activeResult, recentResult] = await Promise.all([
       supabase
         .from('projects')
         .select('*', { count: 'exact', head: true })
@@ -42,15 +68,22 @@ export default async function DashboardPage() {
         .limit(3),
     ]);
 
+    totalProjects = totalResult.count ?? 0;
+    activeProjects = activeResult.count ?? 0;
+    recentProjects = recentResult.data ?? [];
+  } catch {
+    // Keep defaults
+  }
+
   return (
     <DashboardClient
-      userName={profile.full_name ?? profile.email}
+      userName={safeProfile.full_name ?? safeProfile.email}
       canCreate={canCreate}
       kpis={{
-        totalProjects: totalProjects ?? 0,
-        activeProjects: activeProjects ?? 0,
+        totalProjects,
+        activeProjects,
       }}
-      recentProjects={recentProjects ?? []}
+      recentProjects={recentProjects}
     />
   );
 }

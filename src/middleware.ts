@@ -12,11 +12,10 @@ const PUBLIC_PATHS = [
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Allow Next.js internals and static assets
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
-    pathname.includes('.') // files like favicon.ico, images, etc.
+    pathname.includes('.')
   ) {
     return NextResponse.next();
   }
@@ -48,14 +47,12 @@ export async function middleware(request: NextRequest) {
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  // Not logged in + accessing protected route → redirect to login
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // Logged in + accessing /login → redirect to dashboard
   if (user && pathname === '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';

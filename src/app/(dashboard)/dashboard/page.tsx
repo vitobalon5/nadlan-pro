@@ -1,6 +1,23 @@
 import { createClient } from '@/lib/supabase/server';
 import { DashboardClient } from './dashboard-client';
 
+type ProjectStatus =
+  | 'planning'
+  | 'pre_sale'
+  | 'under_construction'
+  | 'completed'
+  | 'sold_out'
+  | 'archived';
+
+type RecentProject = {
+  id: string;
+  slug: string;
+  name: string;
+  city: string;
+  status: ProjectStatus;
+  created_at: string;
+};
+
 export default async function DashboardPage() {
   const supabase = await createClient();
 
@@ -8,8 +25,6 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If user disappeared between middleware/layout and here, just render empty state
-  // The layout already protects this route, so this is just a safety net
   if (!user) {
     return (
       <DashboardClient
@@ -21,14 +36,12 @@ export default async function DashboardPage() {
     );
   }
 
-  // Fetch profile to check write permissions
   const { data: profile } = await supabase
     .from('profiles')
     .select('role, full_name, email')
     .eq('id', user.id)
     .single();
 
-  // Fallback if profile not found - prevents redirect loop
   const safeProfile = profile ?? {
     role: 'viewer' as const,
     full_name: user.email?.split('@')[0] ?? 'User',
@@ -37,17 +50,9 @@ export default async function DashboardPage() {
 
   const canCreate = safeProfile.role === 'admin' || safeProfile.role === 'editor';
 
-  // Fetch KPIs for dashboard summary - with try/catch in case of RLS issues
   let totalProjects = 0;
   let activeProjects = 0;
-  let recentProjects: Array<{
-    id: string;
-    slug: string;
-    name: string;
-    city: string;
-    status: string;
-    created_at: string;
-  }> = [];
+  let recentProjects: RecentProject[] = [];
 
   try {
     const [totalResult, activeResult, recentResult] = await Promise.all([
@@ -70,7 +75,7 @@ export default async function DashboardPage() {
 
     totalProjects = totalResult.count ?? 0;
     activeProjects = activeResult.count ?? 0;
-    recentProjects = recentResult.data ?? [];
+    recentProjects = (recentResult.data ?? []) as RecentProject[];
   } catch {
     // Keep defaults
   }

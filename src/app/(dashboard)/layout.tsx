@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Sidebar } from '@/components/sidebar';
 
-// StockHouse Watermark - appears behind all dashboard pages
+// StockHouse Watermark - centered, horizontal, fits the screen
 function StockHouseWatermark() {
   return (
     <div
@@ -12,9 +12,8 @@ function StockHouseWatermark() {
       <div
         className="text-foreground/[0.08] font-bold tracking-tighter whitespace-nowrap"
         style={{
-          fontSize: 'clamp(8rem, 18vw, 20rem)',
-          transform: 'rotate(-12deg)',
-          letterSpacing: '-0.05em',
+          fontSize: 'clamp(3rem, 10vw, 9rem)',
+          letterSpacing: '-0.04em',
         }}
       >
         StockHouse

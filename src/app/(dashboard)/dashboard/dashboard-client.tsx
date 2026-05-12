@@ -50,6 +50,27 @@ function formatRelativeDate(isoDate: string): string {
   return date.toLocaleDateString('he-IL', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+// Elegant StockHouse Watermark - subtle, behind all content
+function StockHouseWatermark() {
+  return (
+    <div
+      className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden select-none"
+      aria-hidden="true"
+    >
+      <div
+        className="text-foreground/[0.04] font-bold tracking-tighter whitespace-nowrap"
+        style={{
+          fontSize: 'clamp(8rem, 18vw, 20rem)',
+          transform: 'rotate(-12deg)',
+          letterSpacing: '-0.05em',
+        }}
+      >
+        StockHouse
+      </div>
+    </div>
+  );
+}
+
 export function DashboardClient({ userName, canCreate, kpis, recentProjects }: Props) {
   const [showWizard, setShowWizard] = React.useState(false);
 
@@ -87,127 +108,57 @@ export function DashboardClient({ userName, canCreate, kpis, recentProjects }: P
   }
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto">
-      <PageHeader title={`${greeting}, ${firstName}`} description="סקירה כללית של המערכת">
-        {canCreate ? (
-          <Button onClick={() => setShowWizard(true)} size="lg">
-            <Plus className="h-4 w-4" />
-            פרויקט חדש
-          </Button>
-        ) : null}
-      </PageHeader>
-
-      {!canCreate && (
-        <div className="mb-6 flex items-start gap-2 rounded-lg border bg-[hsl(var(--warning-bg))] px-3 py-2.5 text-sm">
-          <ShieldAlert className="h-4 w-4 shrink-0 text-[hsl(var(--warning-foreground))] mt-0.5" />
-          <div>
-            <p className="font-medium text-[hsl(var(--warning-foreground))]">
-              גישה לקריאה בלבד
-            </p>
-            <p className="text-xs mt-0.5 text-[hsl(var(--warning-foreground))] opacity-90">
-              אין לך הרשאות ליצירת פרויקטים חדשים. פנה למנהל המערכת לשדרוג ההרשאות.
-            </p>
-          </div>
-        </div>
-      )}
-
-      <StaggerContainer className="grid gap-4 md:grid-cols-2 mb-6">
-        <StaggerItem>
-          <Card>
-          <CardContent className="pt-5 pb-5">
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--primary-50))]">
-                <Building2 className="h-5 w-5 text-[hsl(var(--primary-600))]" />
-              </div>
-              <Link
-                href="/projects"
-                className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors"
-              >
-                לכל הפרויקטים
-                <ArrowLeft className="h-3 w-3" />
-              </Link>
-            </div>
-            <p className="text-2xl font-semibold">{kpis.totalProjects}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">סה"כ פרויקטים במערכת</p>
-          </CardContent>
-        </Card>
-        </StaggerItem>
-
-        <StaggerItem>
-          <Card>
-          <CardContent className="pt-5 pb-5">
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--success-bg))]">
-                <TrendingUp className="h-5 w-5 text-[hsl(var(--success))]" />
-              </div>
-            </div>
-            <p className="text-2xl font-semibold">{kpis.activeProjects}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              פרויקטים פעילים (בטרום-מכירה או בבנייה)
-            </p>
-          </CardContent>
-        </Card>
-        </StaggerItem>
-      </StaggerContainer>
-
-      {recentProjects.length > 0 && (
-        <FadeIn delay={0.1}>
-        <Card>
-          <CardContent className="p-0">
-            <div className="flex items-center justify-between px-5 py-3 border-b">
-              <h2 className="text-sm font-medium">פרויקטים אחרונים</h2>
-              <Link
-                href="/projects"
-                className="text-xs text-primary hover:underline"
-              >
-                צפה בכולם
-              </Link>
-            </div>
-
-            <div className="divide-y">
-              {recentProjects.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/projects/${p.slug}`}
-                  className="flex items-center gap-3 px-5 py-3 hover:bg-accent/50 transition-colors"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--primary-50))]">
-                    <Building2 className="h-4 w-4 text-[hsl(var(--primary-600))]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {p.city} · נוצר {formatRelativeDate(p.created_at)}
-                    </p>
-                  </div>
-                  <ProjectStatusBadge status={p.status} />
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        </FadeIn>
-      )}
-
-      {recentProjects.length === 0 && canCreate && (
-        <FadeIn delay={0.1}>
-        <Card>
-          <CardContent className="py-16 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[hsl(var(--primary-50))]">
-              <Building2 className="h-6 w-6 text-[hsl(var(--primary-600))]" />
-            </div>
-            <h3 className="text-base font-medium mb-1.5">עוד אין פרויקטים במערכת</h3>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
-              התחל על ידי יצירת הפרויקט הראשון. כל התהליך לוקח פחות מ-5 דקות.
-            </p>
+    <>
+      <StockHouseWatermark />
+      <div className="relative z-10 p-8 max-w-[1400px] mx-auto">
+        <PageHeader title={`${greeting}, ${firstName}`} description="סקירה כללית של המערכת">
+          {canCreate ? (
             <Button onClick={() => setShowWizard(true)} size="lg">
               <Plus className="h-4 w-4" />
-              צור פרויקט ראשון
+              פרויקט חדש
             </Button>
-          </CardContent>
-        </Card>
-        </FadeIn>
-      )}
-    </div>
-  );
-}
+          ) : null}
+        </PageHeader>
+
+        {!canCreate && (
+          <div className="mb-6 flex items-start gap-2 rounded-lg border bg-[hsl(var(--warning-bg))] px-3 py-2.5 text-sm">
+            <ShieldAlert className="h-4 w-4 shrink-0 text-[hsl(var(--warning-foreground))] mt-0.5" />
+            <div>
+              <p className="font-medium text-[hsl(var(--warning-foreground))]">
+                גישה לקריאה בלבד
+              </p>
+              <p className="text-xs mt-0.5 text-[hsl(var(--warning-foreground))] opacity-90">
+                אין לך הרשאות ליצירת פרויקטים חדשים. פנה למנהל המערכת לשדרוג ההרשאות.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <StaggerContainer className="grid gap-4 md:grid-cols-2 mb-6">
+          <StaggerItem>
+            <Card>
+            <CardContent className="pt-5 pb-5">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--primary-50))]">
+                  <Building2 className="h-5 w-5 text-[hsl(var(--primary-600))]" />
+                </div>
+                <Link
+                  href="/projects"
+                  className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors"
+                >
+                  לכל הפרויקטים
+                  <ArrowLeft className="h-3 w-3" />
+                </Link>
+              </div>
+              <p className="text-2xl font-semibold">{kpis.totalProjects}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">סה"כ פרויקטים במערכת</p>
+            </CardContent>
+          </Card>
+          </StaggerItem>
+
+          <StaggerItem>
+            <Card>
+            <CardContent className="pt-5 pb-5">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(v
+                

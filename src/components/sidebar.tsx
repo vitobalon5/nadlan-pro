@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, LayoutGrid, TrendingUp, Database, Users, LogOut, Search } from 'lucide-react';
+import { Building2, Home, TrendingUp, Database, Users, LogOut, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
 import { useCommandBar } from './command-bar/command-bar-provider';
@@ -20,7 +20,7 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { href: '/dashboard', label: 'סקירה כללית', icon: LayoutGrid },
+  { href: '/dashboard', label: 'עמוד ראשי', icon: Home },
   { href: '/projects', label: 'פרויקטים', icon: Building2, showCount: true },
   { href: '/analytics', label: 'ניתוח שוק', icon: TrendingUp },
   { href: '/scraping', label: 'איסוף נתונים', icon: Database },

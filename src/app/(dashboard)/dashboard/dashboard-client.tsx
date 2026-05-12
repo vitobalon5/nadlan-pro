@@ -137,28 +137,99 @@ export function DashboardClient({ userName, canCreate, kpis, recentProjects }: P
         <StaggerContainer className="grid gap-4 md:grid-cols-2 mb-6">
           <StaggerItem>
             <Card>
-            <CardContent className="pt-5 pb-5">
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--primary-50))]">
-                  <Building2 className="h-5 w-5 text-[hsl(var(--primary-600))]" />
+              <CardContent className="pt-5 pb-5">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--primary-50))]">
+                    <Building2 className="h-5 w-5 text-[hsl(var(--primary-600))]" />
+                  </div>
+                  <Link
+                    href="/projects"
+                    className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors"
+                  >
+                    לכל הפרויקטים
+                    <ArrowLeft className="h-3 w-3" />
+                  </Link>
                 </div>
-                <Link
-                  href="/projects"
-                  className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors"
-                >
-                  לכל הפרויקטים
-                  <ArrowLeft className="h-3 w-3" />
-                </Link>
-              </div>
-              <p className="text-2xl font-semibold">{kpis.totalProjects}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">סה"כ פרויקטים במערכת</p>
-            </CardContent>
-          </Card>
+                <p className="text-2xl font-semibold">{kpis.totalProjects}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">סה"כ פרויקטים במערכת</p>
+              </CardContent>
+            </Card>
           </StaggerItem>
 
           <StaggerItem>
             <Card>
-            <CardContent className="pt-5 pb-5">
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(v
-                
+              <CardContent className="pt-5 pb-5">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--success-50))]">
+                    <TrendingUp className="h-5 w-5 text-[hsl(var(--success-600))]" />
+                  </div>
+                </div>
+                <p className="text-2xl font-semibold">{kpis.activeProjects}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">פרויקטים פעילים</p>
+              </CardContent>
+            </Card>
+          </StaggerItem>
+        </StaggerContainer>
+
+        {recentProjects.length > 0 && (
+          <FadeIn delay={0.1}>
+            <Card>
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between px-5 py-3 border-b">
+                  <h2 className="text-sm font-medium">פרויקטים אחרונים</h2>
+                  <Link
+                    href="/projects"
+                    className="text-xs text-primary hover:underline"
+                  >
+                    צפה בכולם
+                  </Link>
+                </div>
+
+                <div className="divide-y">
+                  {recentProjects.map((p) => (
+                    <Link
+                      key={p.id}
+                      href={`/projects/${p.slug}`}
+                      className="flex items-center gap-3 px-5 py-3 hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--primary-50))]">
+                        <Building2 className="h-4 w-4 text-[hsl(var(--primary-600))]" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{p.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {p.city} · נוצר {formatRelativeDate(p.created_at)}
+                        </p>
+                      </div>
+                      <ProjectStatusBadge status={p.status} />
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </FadeIn>
+        )}
+
+        {recentProjects.length === 0 && canCreate && (
+          <FadeIn delay={0.1}>
+            <Card>
+              <CardContent className="py-16 text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[hsl(var(--primary-50))]">
+                  <Building2 className="h-6 w-6 text-[hsl(var(--primary-600))]" />
+                </div>
+                <h3 className="text-base font-medium mb-1.5">עוד אין פרויקטים במערכת</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
+                  התחל על ידי יצירת הפרויקט הראשון. כל התהליך לוקח פחות מ-5 דקות.
+                </p>
+                <Button onClick={() => setShowWizard(true)} size="lg">
+                  <Plus className="h-4 w-4" />
+                  צור פרויקט ראשון
+                </Button>
+              </CardContent>
+            </Card>
+          </FadeIn>
+        )}
+      </div>
+    </>
+  );
+}

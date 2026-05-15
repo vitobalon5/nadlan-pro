@@ -96,8 +96,8 @@ export function DashboardClient({ userName, canCreate, kpis, recentProjects }: P
       {/* Layer 2: Main content - sits above the watermark */}
       <div className="relative z-10 p-8 max-w-[1400px] mx-auto">
         {/* StockHouse Logo - large branded header */}
-        <div className="mb-8 flex justify-center">
-          <StockHouseLogo className="max-w-xl" />
+        <div className="mb-4 flex justify-center">
+          <StockHouseLogo className="max-w-sm" />
         </div>
 
         <PageHeader title={`${greeting}, ${firstName}`} description="סקירה כללית של המערכת">

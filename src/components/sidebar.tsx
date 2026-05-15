@@ -7,6 +7,7 @@ import { Building2, Home, TrendingUp, Database, Users, LogOut, Search } from 'lu
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
 import { useCommandBar } from './command-bar/command-bar-provider';
+import { StockHouseMiniLogo } from './branding/stockhouse-mini-logo';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
@@ -47,12 +48,12 @@ export function Sidebar({ user, projectCount }: SidebarProps) {
   };
 
   return (
-    <aside className="flex h-screen w-56 flex-col border-l bg-card">
+    <aside className="relative z-20 flex h-screen w-56 flex-col bg-background shadow-xl">
       <div className="flex items-center gap-2 border-b px-4 py-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <Building2 className="h-4 w-4 text-primary-foreground" />
-        </div>
-        <span className="text-sm font-medium">Nadlan Pro</span>
+        <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <StockHouseMiniLogo className="h-8 w-8" />
+          <span className="text-sm font-medium">StockHouse</span>
+        </Link>
         <div className="mr-auto">
           <ThemeToggle />
         </div>

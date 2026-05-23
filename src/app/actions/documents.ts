@@ -16,7 +16,8 @@ const BUCKET_NAME = 'office-documents';
 export async function getDocuments(): Promise<OfficeDocument[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('office_documents')
     .select('*')
     .order('created_at', { ascending: false });
@@ -26,7 +27,7 @@ export async function getDocuments(): Promise<OfficeDocument[]> {
     return [];
   }
 
-  return data as OfficeDocument[];
+  return (data || []) as OfficeDocument[];
 }
 
 /**
@@ -81,7 +82,8 @@ export async function uploadDocument(formData: FormData): Promise<UploadDocument
     }
 
     // Insert metadata into database
-    const { data: docData, error: dbError } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: docData, error: dbError } = await (supabase as any)
       .from('office_documents')
       .insert({
         name: file.name,
@@ -120,7 +122,8 @@ export async function deleteDocument(documentId: string): Promise<DeleteDocument
     const supabase = await createClient();
 
     // First, get the file_path so we know what to delete from storage
-    const { data: doc, error: fetchError } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: doc, error: fetchError } = await (supabase as any)
       .from('office_documents')
       .select('file_path')
       .eq('id', documentId)
@@ -140,7 +143,8 @@ export async function deleteDocument(documentId: string): Promise<DeleteDocument
     }
 
     // Delete from database
-    const { error: dbError } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: dbError } = await (supabase as any)
       .from('office_documents')
       .delete()
       .eq('id', documentId);

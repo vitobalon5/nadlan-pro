@@ -11,6 +11,19 @@ import type {
 const BUCKET_NAME = 'office-documents';
 
 /**
+ * Get the file extension from a filename
+ * Returns the extension WITH the leading dot, or empty string if none
+ */
+function getFileExtension(filename: string): string {
+  const lastDot = filename.lastIndexOf('.');
+  if (lastDot === -1 || lastDot === 0) return '';
+  const ext = filename.substring(lastDot).toLowerCase();
+  // Only allow ASCII extension
+  if (!/^\.[a-z0-9]+$/i.test(ext)) return '';
+  return ext;
+}
+
+/**
  * Get all office documents, ordered by newest first
  */
 export async function getDocuments(): Promise<OfficeDocument[]> {
@@ -62,11 +75,13 @@ export async function uploadDocument(formData: FormData): Promise<UploadDocument
 
     const uploaderName = profile?.full_name || user.email || 'משתמש';
 
-    // Generate unique filename to prevent collisions
+    // Generate a fully ASCII-safe storage path
+    // The ORIGINAL filename (with Hebrew/special chars) is stored in the DB `name` column
+    // Storage path uses only timestamp + random string + extension
     const timestamp = Date.now();
-    const randomStr = Math.random().toString(36).substring(2, 8);
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.\-_\u0590-\u05FF]/g, '_');
-    const filePath = `${timestamp}-${randomStr}-${sanitizedName}`;
+    const randomStr = Math.random().toString(36).substring(2, 10);
+    const extension = getFileExtension(file.name);
+    const filePath = `${timestamp}-${randomStr}${extension}`;
 
     // Upload file to Storage
     const { error: uploadError } = await supabase.storage
@@ -82,6 +97,7 @@ export async function uploadDocument(formData: FormData): Promise<UploadDocument
     }
 
     // Insert metadata into database
+    // The ORIGINAL filename is preserved here for display
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: docData, error: dbError } = await (supabase as any)
       .from('office_documents')
@@ -98,6 +114,7 @@ export async function uploadDocument(formData: FormData): Promise<UploadDocument
 
     if (dbError) {
       console.error('[uploadDocument] DB error:', dbError);
+      // Try to clean up the uploaded file
       await supabase.storage.from(BUCKET_NAME).remove([filePath]);
       return { success: false, error: 'שגיאה בשמירת המידע: ' + dbError.message };
     }

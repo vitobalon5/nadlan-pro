@@ -1,6 +1,6 @@
 'use server';
 
-import { createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import type {
   OfficeDocument,
@@ -14,7 +14,7 @@ const BUCKET_NAME = 'office-documents';
  * Get all office documents, ordered by newest first
  */
 export async function getDocuments(): Promise<OfficeDocument[]> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('office_documents')
@@ -41,7 +41,7 @@ export async function uploadDocument(formData: FormData): Promise<UploadDocument
       return { success: false, error: 'לא נבחר קובץ' };
     }
 
-    const supabase = await createServerClient();
+    const supabase = await createClient();
 
     // Get current user
     const {
@@ -62,7 +62,6 @@ export async function uploadDocument(formData: FormData): Promise<UploadDocument
     const uploaderName = profile?.full_name || user.email || 'משתמש';
 
     // Generate unique filename to prevent collisions
-    // Format: timestamp-randomstring-originalname
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 8);
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.\-_\u0590-\u05FF]/g, '_');
@@ -97,7 +96,6 @@ export async function uploadDocument(formData: FormData): Promise<UploadDocument
 
     if (dbError) {
       console.error('[uploadDocument] DB error:', dbError);
-      // Try to clean up the uploaded file
       await supabase.storage.from(BUCKET_NAME).remove([filePath]);
       return { success: false, error: 'שגיאה בשמירת המידע: ' + dbError.message };
     }
@@ -119,7 +117,7 @@ export async function uploadDocument(formData: FormData): Promise<UploadDocument
  */
 export async function deleteDocument(documentId: string): Promise<DeleteDocumentResult> {
   try {
-    const supabase = await createServerClient();
+    const supabase = await createClient();
 
     // First, get the file_path so we know what to delete from storage
     const { data: doc, error: fetchError } = await supabase
@@ -139,7 +137,6 @@ export async function deleteDocument(documentId: string): Promise<DeleteDocument
 
     if (storageError) {
       console.error('[deleteDocument] Storage error:', storageError);
-      // Continue anyway - we still want to clean up the DB record
     }
 
     // Delete from database
@@ -167,11 +164,11 @@ export async function deleteDocument(documentId: string): Promise<DeleteDocument
  * URL expires after 1 hour for security
  */
 export async function getDocumentDownloadUrl(filePath: string): Promise<string | null> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.storage
     .from(BUCKET_NAME)
-    .createSignedUrl(filePath, 3600); // 1 hour expiry
+    .createSignedUrl(filePath, 3600);
 
   if (error || !data) {
     console.error('[getDocumentDownloadUrl] Error:', error);

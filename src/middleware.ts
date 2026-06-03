@@ -1,4 +1,3 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 const PUBLIC_PATHS = [
@@ -20,44 +19,28 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  let response = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const { data: { session } } = await supabase.auth.getSession();
-
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  if (!session && !isPublic) {
+  // בדוק אם יש session cookie של Supabase
+  const allCookies = request.cookies.getAll();
+  const hasSession = allCookies.some(
+    (cookie) =>
+      cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token')
+  );
+
+  if (!hasSession && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  if (session && pathname === '/login') {
+  if (hasSession && pathname === '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {

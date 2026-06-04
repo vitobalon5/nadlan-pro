@@ -86,7 +86,6 @@ export function ProjectDetailClient({
       {activeTab === 'overview' && (
         <div className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-            {/* Media preview card */}
             <Card className="overflow-hidden">
               <div className="aspect-video bg-gradient-to-br from-[hsl(var(--primary-50))] to-[hsl(var(--info-bg))] flex items-center justify-center">
                 {media[0]?.public_url ? (
@@ -178,6 +177,7 @@ export function ProjectDetailClient({
               projectId={projectId}
               initialMedia={media}
               onDelete={handleUploadComplete}
+              onClose={() => setActiveTab('media')}
             />
           </div>
         </div>

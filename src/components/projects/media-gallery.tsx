@@ -19,6 +19,7 @@ interface Props {
   projectId: string;
   initialMedia: MediaItem[];
   onDelete?: () => void;
+  onClose?: () => void;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -30,7 +31,7 @@ const TYPE_LABELS: Record<string, string> = {
   video: 'וידאו',
 };
 
-export function MediaGallery({ projectId, initialMedia, onDelete }: Props) {
+export function MediaGallery({ projectId, initialMedia, onDelete, onClose }: Props) {
   const [media, setMedia] = React.useState(initialMedia);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [previewItem, setPreviewItem] = React.useState<MediaItem | null>(null);
@@ -100,6 +101,7 @@ export function MediaGallery({ projectId, initialMedia, onDelete }: Props) {
     setPreviewItem(null);
     setShareOpen(false);
     setCopied(false);
+    onClose?.();
   };
 
   if (media.length === 0) {
@@ -197,7 +199,6 @@ export function MediaGallery({ projectId, initialMedia, onDelete }: Props) {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Download Button */}
               <button
                 type="button"
                 onClick={() => handleDownload(previewItem)}
@@ -207,7 +208,6 @@ export function MediaGallery({ projectId, initialMedia, onDelete }: Props) {
                 <span className="hidden sm:inline">הורדה</span>
               </button>
 
-              {/* Share Button + Dropdown */}
               <div className="relative">
                 <button
                   type="button"
@@ -273,7 +273,6 @@ export function MediaGallery({ projectId, initialMedia, onDelete }: Props) {
             {previewItem.public_url && (
               <>
                 {previewItem.mime_type?.startsWith('image/') ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={previewItem.public_url}
                     alt={previewItem.file_name}

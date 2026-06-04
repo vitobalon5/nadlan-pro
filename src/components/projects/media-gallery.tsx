@@ -174,31 +174,34 @@ export function MediaGallery({ projectId, initialMedia, onDelete, onClose }: Pro
       {/* Preview Modal */}
       {previewItem && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col"
+          className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex flex-col"
           onClick={closePreview}
         >
           {/* Header */}
           <div
-            className="flex items-center justify-between p-4 bg-background border-b"
+            className="flex flex-row-reverse items-center gap-3 p-4 bg-background border-b shrink-0"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* X בצד שמאל */}
             <button
               type="button"
               onClick={closePreview}
-              className="rounded-md p-2 hover:bg-muted"
+              className="rounded-md p-2 hover:bg-muted shrink-0"
               aria-label="סגור"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <div className="flex-1 mx-4 text-center">
+            {/* כותרת באמצע */}
+            <div className="flex-1 text-center">
               <p className="text-sm font-medium truncate">{previewItem.file_name}</p>
               <p className="text-xs text-muted-foreground">
                 {TYPE_LABELS[previewItem.media_type] ?? previewItem.media_type}
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* כפתורים בצד ימין */}
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => handleDownload(previewItem)}
@@ -219,7 +222,7 @@ export function MediaGallery({ projectId, initialMedia, onDelete, onClose }: Pro
                 </button>
 
                 {shareOpen && (
-                  <div className="absolute top-full mt-2 left-0 w-48 bg-popover border rounded-lg shadow-lg overflow-hidden z-10">
+                  <div className="absolute top-full mt-2 right-0 w-48 bg-popover border rounded-lg shadow-lg overflow-hidden z-10">
                     <button
                       type="button"
                       onClick={() => {

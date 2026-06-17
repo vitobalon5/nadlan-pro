@@ -441,6 +441,54 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['market_cache']['Insert']>;
         Relationships: [];
       };
+
+      project_tabs: {
+        Row: {
+          id: string;
+          project_id: string;
+          name: string;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          name: string;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['project_tabs']['Insert']>;
+        Relationships: [];
+      };
+
+      project_tab_files: {
+        Row: {
+          id: string;
+          tab_id: string;
+          project_id: string;
+          name: string;
+          file_path: string;
+          file_size: number;
+          mime_type: string;
+          uploaded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tab_id: string;
+          project_id: string;
+          name: string;
+          file_path: string;
+          file_size: number;
+          mime_type: string;
+          uploaded_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['project_tab_files']['Insert']>;
+        Relationships: [];
+      };
     };
 
     Views: {

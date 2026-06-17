@@ -4,8 +4,8 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
-function createClient() {
-  const cookieStore = cookies();
+async function createClient() {
+  const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -24,7 +24,7 @@ function createClient() {
 
 // קבלת כל הטאבים של פרויקט
 export async function getProjectTabs(projectId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('project_tabs')
     .select('*')
@@ -36,7 +36,7 @@ export async function getProjectTabs(projectId: string) {
 
 // יצירת טאב חדש
 export async function createProjectTab(projectId: string, name: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: existing } = await supabase
     .from('project_tabs')
     .select('position')
@@ -56,7 +56,7 @@ export async function createProjectTab(projectId: string, name: string) {
 
 // מחיקת טאב
 export async function deleteProjectTab(tabId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from('project_tabs')
     .delete()
@@ -67,7 +67,7 @@ export async function deleteProjectTab(tabId: string) {
 
 // העלאת קובץ לטאב
 export async function uploadTabFile(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const file = formData.get('file') as File;
   const tabId = formData.get('tabId') as string;
   const projectId = formData.get('projectId') as string;
@@ -107,7 +107,7 @@ export async function uploadTabFile(formData: FormData) {
 
 // קבלת קבצים של טאב
 export async function getTabFiles(tabId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('project_tab_files')
     .select('*')
@@ -119,7 +119,7 @@ export async function getTabFiles(tabId: string) {
 
 // מחיקת קובץ מטאב
 export async function deleteTabFile(fileId: string, filePath: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   await supabase.storage.from('project-tab-files').remove([filePath]);
   const { error } = await supabase
     .from('project_tab_files')
@@ -131,7 +131,7 @@ export async function deleteTabFile(fileId: string, filePath: string) {
 
 // קבלת URL להורדה
 export async function getTabFileDownloadUrl(filePath: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.storage
     .from('project-tab-files')
     .createSignedUrl(filePath, 3600);

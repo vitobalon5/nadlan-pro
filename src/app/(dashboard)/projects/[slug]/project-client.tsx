@@ -12,6 +12,7 @@ import { NeighborhoodInsights } from '@/components/neighborhood/neighborhood-ins
 import { CompetitorsComparisonTable } from '@/components/competitors/comparison-table';
 import { AiReportPanel } from '@/components/ai-report/report-panel';
 import { ExportButtons } from '@/components/export/export-buttons';
+import { CustomTabsManager } from '@/components/projects/custom-tabs-manager';
 import { formatILS } from '@/lib/utils';
 
 interface Props {
@@ -204,11 +205,7 @@ export function ProjectDetailClient({
       )}
 
       {activeTab === 'documents' && (
-        <Card>
-          <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            מסמכים — בקרוב
-          </CardContent>
-        </Card>
+        <CustomTabsManager projectId={projectId} />
       )}
     </>
   );

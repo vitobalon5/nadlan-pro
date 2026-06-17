@@ -54,6 +54,7 @@ export function CustomTabsManager({ projectId }: Props) {
   const [newTabName, setNewTabName] = React.useState('');
   const [isAddingTab, setIsAddingTab] = React.useState(false);
   const [isCreatingTab, setIsCreatingTab] = React.useState(false);
+  const [tabError, setTabError] = React.useState<string | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [isLoadingFiles, setIsLoadingFiles] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -83,15 +84,26 @@ export function CustomTabsManager({ projectId }: Props) {
   const handleCreateTab = async () => {
     if (!newTabName.trim()) return;
     setIsCreatingTab(true);
-    const result = await createProjectTab(projectId, newTabName.trim());
-    if (result.success && result.tab) {
-      const newTab = result.tab as ProjectTab;
-      setTabs((prev) => [...prev, newTab]);
-      setActiveTabId(newTab.id);
-      setNewTabName('');
-      setIsAddingTab(false);
+    setTabError(null);
+    try {
+      const result = await createProjectTab(projectId, newTabName.trim());
+      if (result.success) {
+        if (result.tab) {
+          const newTab = result.tab as ProjectTab;
+          setTabs((prev) => [...prev, newTab]);
+          setActiveTabId(newTab.id);
+        }
+        setNewTabName('');
+        setIsAddingTab(false);
+      } else {
+        setTabError(result.error ?? 'שגיאה ביצירת הטאב');
+      }
+    } catch (err) {
+      console.error('createProjectTab failed:', err);
+      setTabError('שגיאה ביצירת הטאב');
+    } finally {
+      setIsCreatingTab(false);
     }
-    setIsCreatingTab(false);
   };
 
   const handleDeleteTab = async (tabId: string) => {
@@ -174,41 +186,51 @@ export function CustomTabsManager({ projectId }: Props) {
         ))}
 
         {isAddingTab ? (
-          <div className="flex items-center gap-2">
-            <Input
-              value={newTabName}
-              onChange={(e) => setNewTabName(e.target.value)}
-              placeholder="שם הטאב"
-              className="h-8 w-36 text-sm"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleCreateTab();
-                if (e.key === 'Escape') {
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Input
+                value={newTabName}
+                onChange={(e) => { setNewTabName(e.target.value); setTabError(null); }}
+                placeholder="שם הטאב"
+                className="h-8 w-36 text-sm"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreateTab();
+                  if (e.key === 'Escape') {
+                    setIsAddingTab(false);
+                    setNewTabName('');
+                    setTabError(null);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleCreateTab}
+                disabled={isCreatingTab || !newTabName.trim()}
+              >
+                {isCreatingTab ? '...' : 'הוסף'}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => {
                   setIsAddingTab(false);
                   setNewTabName('');
-                }
-              }}
-            />
-            <Button
-              size="sm"
-              onClick={handleCreateTab}
-              disabled={isCreatingTab || !newTabName.trim()}
-            >
-              {isCreatingTab ? '...' : 'הוסף'}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setIsAddingTab(false);
-                setNewTabName('');
-              }}
-            >
-              ביטול
-            </Button>
+                  setTabError(null);
+                }}
+              >
+                ביטול
+              </Button>
+            </div>
+            {tabError && (
+              <p className="text-xs text-destructive">{tabError}</p>
+            )}
           </div>
         ) : (
           <Button
+            type="button"
             size="sm"
             variant="outline"
             onClick={() => setIsAddingTab(true)}

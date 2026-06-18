@@ -60,7 +60,9 @@ export function CustomTabsManager({ projectId }: Props) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
+    console.log('[CustomTabsManager] mounted, projectId:', projectId);
     getProjectTabs(projectId).then((data) => {
+      console.log('[CustomTabsManager] getProjectTabs result', data);
       const typedTabs = data as ProjectTab[];
       setTabs(typedTabs);
       if (typedTabs.length > 0) {
@@ -82,11 +84,14 @@ export function CustomTabsManager({ projectId }: Props) {
   }, [activeTabId]);
 
   const handleCreateTab = async () => {
-    if (!newTabName.trim()) return;
+    const trimmed = newTabName.trim();
+    console.log('[CustomTabsManager] handleCreateTab called', { trimmed, projectId });
+    if (!trimmed) return;
     setIsCreatingTab(true);
     setTabError(null);
     try {
-      const result = await createProjectTab(projectId, newTabName.trim());
+      const result = await createProjectTab(projectId, trimmed);
+      console.log('[CustomTabsManager] createProjectTab result', result);
       if (result.success) {
         if (result.tab) {
           const newTab = result.tab as ProjectTab;
@@ -99,8 +104,8 @@ export function CustomTabsManager({ projectId }: Props) {
         setTabError(result.error ?? 'שגיאה ביצירת הטאב');
       }
     } catch (err) {
-      console.error('createProjectTab failed:', err);
-      setTabError('שגיאה ביצירת הטאב');
+      console.error('[CustomTabsManager] createProjectTab threw:', err);
+      setTabError('שגיאה ביצירת הטאב — בדוק את הקונסולה');
     } finally {
       setIsCreatingTab(false);
     }

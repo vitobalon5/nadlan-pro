@@ -1,26 +1,7 @@
 'use server';
 
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-
-async function createClient() {
-  const cookieStore = await cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-}
 
 // קבלת כל הטאבים של פרויקט
 export async function getProjectTabs(projectId: string) {
@@ -36,7 +17,16 @@ export async function getProjectTabs(projectId: string) {
 
 // יצירת טאב חדש
 export async function createProjectTab(projectId: string, name: string) {
+  console.log('[createProjectTab] called', { projectId, name });
   const supabase = await createClient();
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    console.log('[createProjectTab] auth failed', authError?.message);
+    return { success: false as const, error: 'לא מחובר' };
+  }
+  console.log('[createProjectTab] user', user.id);
+
   const { data: existing } = await supabase
     .from('project_tabs')
     .select('position')
@@ -44,14 +34,18 @@ export async function createProjectTab(projectId: string, name: string) {
     .order('position', { ascending: false })
     .limit(1);
   const nextPosition = existing && existing.length > 0 ? existing[0].position + 1 : 0;
+
   const { data, error } = await supabase
     .from('project_tabs')
     .insert({ project_id: projectId, name, position: nextPosition })
     .select()
     .single();
-  if (error) return { success: false, error: error.message };
+
+  console.log('[createProjectTab] insert result', { data, error: error?.message });
+
+  if (error) return { success: false as const, error: error.message };
   revalidatePath(`/projects`);
-  return { success: true, tab: data };
+  return { success: true as const, tab: data };
 }
 
 // מחיקת טאב
